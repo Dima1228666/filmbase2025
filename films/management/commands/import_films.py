@@ -91,11 +91,7 @@ class Command(BaseCommand):
         return film
 
     def create_films(self):
-        was = False
         with open(GetCommand.filename(), 'r') as f:
             films_data = json.load(f)
             for film_data in films_data['docs']:
-                if film_data["name"] == "Судьба человека":
-                    was = True
-                if was:
-                    self.create_film(film_data)
+                self.create_film(film_data)
