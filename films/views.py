@@ -1,10 +1,11 @@
 from dal import autocomplete
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.decorators import user_passes_test
-from .models import Country, Film, Genre, Person
+from .models import Country, Film, Genre, Person, Role, FilmCrew
 from .forms import CountryForm, GenreForm, FilmForm, PersonForm
 from .helpers import paginate
 from django.contrib import messages
+from collections import defaultdict
 
 
 def check_admin(user):
@@ -18,7 +19,7 @@ def country_list(request):
 
 def country_detail(request, id):
     country = get_object_or_404(Country, id=id)
-    films = Film.objects.filter(country=country)
+    films = Film.objects.filter(countries=country)
 
     films = paginate(request, films)
     return render(request, 'films/country/detail.html',
@@ -128,11 +129,16 @@ def film_list(request):
 
 
 def film_detail(request, id):
-    queryset = Film.objects.prefetch_related("country", "genres", "director",
-                                             "people")
+    queryset = Film.objects.prefetch_related("countries", "genres")
     film = get_object_or_404(queryset, id=id)
+    crew_records = FilmCrew.objects.filter(film=film).select_related('person', 'role')
+    crew_grouped = defaultdict(list)
+    for record in crew_records:
+        crew_grouped[record.role.name].append(record.person)
+    crew_grouped = dict(crew_grouped)
+
     return render(request, 'films/film/detail.html',
-                  {'film': film})
+                  {'film': film, 'crew_grouped': crew_grouped})
 
 
 @user_passes_test(check_admin)
@@ -185,10 +191,11 @@ def person_list(request):
 
 
 def person_detail(request, id):
-    queryset = Person.objects.prefetch_related("film_set", "directed_films")
-    person = get_object_or_404(queryset, id=id)
+    person = get_object_or_404(Person, id=id)
+    credits = FilmCrew.objects.filter(person=person).select_related('film', 'role') \
+        .order_by('-film__year')
     return render(request, 'films/person/detail.html',
-                  {'person': person})
+                  {'person': person, 'credits': credits})
 
 
 @user_passes_test(check_admin)

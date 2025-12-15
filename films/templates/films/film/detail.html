@@ -41,11 +41,14 @@
           <dl class="row">
             {% if film.country %}
               <dt class="col-md-3 text-md-end">
-                {% verbose_name film 'country' %}
+                {% verbose_name film 'countries' %}
               </dt>
-              <dd class="col-md-9"><a href="{% url 'films:country_detail' film.country.id %}">{{ film.country.name }}</a></dd>
+              <dd class="col-md-9">
+                {% for country in film.countries.all %}
+                  <a href="{% url 'films:country_detail' country.id %}">{{ country.name }}</a>{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+              </dd>
             {% endif %}
-
             {% if film.genres %}
               <dt class="col-md-3 text-md-end">
                 {% verbose_name film 'genres' %}
@@ -79,22 +82,16 @@
               </dt>
               <dd class="col-md-9">{{ film.description }}</dd>
             {% endif %}
-            {% if film.director %}
+            {% for role_name, persons in crew_grouped.items %}
               <dt class="col-md-3 text-md-end">
-                {% verbose_name film 'director' %}
-              </dt>
-              <dd class="col-md-9"><a href="{% url 'films:person_detail' film.director.id %}">{{ film.director.name }}</a></dd>
-            {% endif %}
-            {% if film.people %}
-              <dt class="col-md-3 text-md-end">
-                {% verbose_name film 'people' %}
+                {{ role_name }}
               </dt>
               <dd class="col-md-9">
-                {% for person in film.people.all %}
+                {% for person in persons %}
                   <a href="{% url 'films:person_detail' person.id %}">{{ person.name }}</a>{% if not forloop.last %}, {% endif %}
                 {% endfor %}
               </dd>
-            {% endif %}
+            {% endfor %}
           </dl>
           {% if film.trailer_url %}
             <div class="ratio ratio-16x9">

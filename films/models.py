@@ -71,12 +71,8 @@ class Film(MyModel):
     origin_name = models.CharField(
         "Название (в оригинале)", max_length=1024, blank=True, null=True)
     slogan = models.CharField("Девиз", max_length=2048, blank=True, null=True)
-    country = models.ForeignKey(
-        Country, on_delete=models.CASCADE, verbose_name="Страна")
-    genres = models.ManyToManyField(Genre, verbose_name="Жанр")
-    director = models.ForeignKey(
-        Person, on_delete=models.CASCADE, verbose_name="Режиссер",
-        related_name="directed_films")
+    countries = models.ManyToManyField(Country, related_name="films", verbose_name="страны")
+    genres = models.ManyToManyField(Genre, related_name="films", verbose_name="Жанр")
     length = models.PositiveIntegerField(
         "Продолжительность", blank=True, null=True)
     year = models.PositiveIntegerField("Год выпуска", blank=True, null=True,
@@ -86,7 +82,11 @@ class Film(MyModel):
     cover = models.ImageField(
         "Постер", upload_to='covers/', blank=True, null=True)
     description = models.TextField("Описание", blank=True, null=True)
-    people = models.ManyToManyField(Person, verbose_name="Актеры")
+    people = models.ManyToManyField(
+        Person,
+        through='FilmCrew',
+        related_name='films'
+    )
     kinopoisk_id = models.PositiveIntegerField(
         "Kinopoisk ID", blank=True, null=True)
 
@@ -97,3 +97,29 @@ class Film(MyModel):
 
     def __str__(self):
         return self.name
+
+
+class Role(MyModel):
+    name = models.CharField(max_length=255)
+    slug = models.SlugField(unique=True)
+
+    class Meta:
+        ordering = ["name"]
+        verbose_name = "Роль"
+        verbose_name_plural = "Роли"
+
+    def __str__(self):
+        return self.name
+
+
+class FilmCrew(MyModel):
+    film = models.ForeignKey(Film, on_delete=models.CASCADE)
+    person = models.ForeignKey(Person, on_delete=models.CASCADE)
+    role = models.ForeignKey(Role, on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name = "Участник съемочной группы"
+        verbose_name_plural = "Съемочная группа"
+
+    def __str__(self):
+        return f"{self.person.name} - {self.role.name} ({self.film.name})"

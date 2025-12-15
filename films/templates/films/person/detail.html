@@ -51,33 +51,26 @@
                 </span>
               </dd>
             {% endif %}
-            {% if person.directed_films.all %}
-              <dt class="col-md-3 text-md-end">
-                {% verbose_name person.directed_films.all.0 'director' %}
-              </dt>
-              <dd class="col-md-9">
-                <ol>
-                  {% for film in person.directed_films.all %}
-                    <li>
-                      <a href="{% url 'films:film_detail' film.id %}">{{ film.name }}</a>
-                    </li>
-                  {% endfor %}
-                </ol>
-              </dd>
-            {% endif %}
-            {% if person.film_set.all %}
-              <dt class="col-md-3 text-md-end">{{ 'films:film'|model_verbose_name_plural }}</dt>
-              <dd class="col-md-9">
-                <ol>
-                  {% for film in person.film_set.all %}
-                    <li>
-                      <a href="{% url 'films:film_detail' film.id %}">{{ film.name }}</a>
-                    </li>
-                  {% endfor %}
-                </ol>
-              </dd>
-            {% endif %}
-          </dl>
+          </dl>    
+          <hr>
+          <h4 class="mb-3">Фильмография</h4>
+          {% if credits %}
+            <div class="list-group">
+              {% for credit in credits %}
+                <a href="{% url 'films:film_detail' credit.film.id %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                  <div>
+                    <span class="fw-bold">{{ credit.film.name }}</span>
+                    {% if credit.film.year %}
+                      <span class="text-muted small ms-1">({{ credit.film.year }})</span>
+                    {% endif %}
+                  </div>
+                  <span class="badge bg-secondary rounded-pill">
+                    {{ credit.role.name }}
+                  </span>
+                </a>
+              {% endfor %}
+            </div>
+          {% endif %}
         </div>
       </div>
     </div>

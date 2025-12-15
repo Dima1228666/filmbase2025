@@ -19,15 +19,12 @@ class FilmForm(forms.ModelForm):
     class Meta:
         model = Film
         fields = ['name', 'origin_name', 'slogan', 'length', 'year',
-                  'trailer_url', 'cover', 'description', 'country', 'genres',
-                  "director", 'people']
+                  'trailer_url', 'cover', 'description', 'countries', 'genres', 'people']
         widgets = {
-            'people': autocomplete.ModelSelect2Multiple(
+            'countries': autocomplete.ModelSelect2Multiple(
                 url='films:person_autocomplete'),
-            'director': autocomplete.ModelSelect2(
-                url='films:person_autocomplete'),
-            'country': autocomplete.ModelSelect2(
-                url='films:country_autocomplete'),
+            'genres': autocomplete.ModelSelect2Multiple(
+                url='films:genre_autocomplete')
         }
 
 
