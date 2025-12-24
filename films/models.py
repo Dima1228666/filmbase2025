@@ -102,11 +102,12 @@ class Film(MyModel):
 class Role(MyModel):
     name = models.CharField(max_length=255)
     slug = models.SlugField(unique=True)
+    priority = models.PositiveSmallIntegerField("Приоритет", default=100)
 
     class Meta:
-        ordering = ["name"]
         verbose_name = "Роль"
         verbose_name_plural = "Роли"
+        ordering = ['priority', 'name']
 
     def __str__(self):
         return self.name

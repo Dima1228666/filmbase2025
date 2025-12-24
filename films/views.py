@@ -2,7 +2,7 @@ from dal import autocomplete
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib.auth.decorators import user_passes_test
 from .models import Country, Film, Genre, Person, Role, FilmCrew
-from .forms import CountryForm, GenreForm, FilmForm, PersonForm
+from .forms import CountryForm, GenreForm, FilmForm, PersonForm, FilmCrewFormSet
 from .helpers import paginate
 from django.contrib import messages
 from collections import defaultdict
@@ -131,7 +131,8 @@ def film_list(request):
 def film_detail(request, id):
     queryset = Film.objects.prefetch_related("countries", "genres")
     film = get_object_or_404(queryset, id=id)
-    crew_records = FilmCrew.objects.filter(film=film).select_related('person', 'role')
+    crew_records = FilmCrew.objects.filter(film=film).select_related('person', 'role') \
+        .order_by('role__priority', 'person__name')
     crew_grouped = defaultdict(list)
     for record in crew_records:
         crew_grouped[record.role.name].append(record.person)
@@ -251,3 +252,34 @@ class CountryAutocomplete(autocomplete.Select2QuerySetView):
         if self.q:
             countries = countries.filter(name__istartswith=self.q)
         return countries
+    
+
+class GenreAutocomplete(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        genres = Genre.objects.all()
+        if self.q:
+            genres = genres.filter(name__icontains=self.q)
+        return genres
+
+
+@user_passes_test(check_admin)
+def film_update(request, id):
+    film = get_object_or_404(Film, id=id)
+
+    if request.method == 'POST':
+        form = FilmForm(request.POST, request.FILES, instance=film)
+        formset = FilmCrewFormSet(request.POST, instance=film)
+
+        if form.is_valid() and formset.is_valid():
+            saved_film = form.save()
+            formset.save()  # Сохраняет добавленных, обновляет измененных, удаляет удаленных
+            messages.success(request, 'Фильм успешно обновлен')
+            return redirect('films:film_detail', id=saved_film.id)
+    else:
+        form = FilmForm(instance=film)
+        formset = FilmCrewFormSet(instance=film)
+
+    return render(request, 'films/film/update.html', {
+        'form': form,
+        'formset': formset
+    })

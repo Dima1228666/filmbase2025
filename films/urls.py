@@ -21,6 +21,7 @@ urlpatterns = [
          views.genre_update, name='genre_update'),
     path('genres/<int:id>/delete/',
          views.genre_delete, name='genre_delete'),
+    path('genre-autocomplete/', views.GenreAutocomplete.as_view(), name='genre_autocomplete'),
 
     path('films/', views.film_list, name='film_list'),
     path('films/<int:id>/', views.film_detail, name='film_detail'),

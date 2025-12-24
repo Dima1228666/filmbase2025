@@ -13,15 +13,15 @@ class Command(BaseCommand):
     help = 'Import films from json file'
 
     PROFESSION_MAP = {
-        'режиссеры': ('director', 'Режиссер'),
-        'актеры': ('actor', 'Актер'),
-        'продюсеры': ('producer', 'Продюсер'),
-        'сценаристы': ('writer', 'Сценарист'),
-        'операторы': ('operator', 'Оператор'),
-        'композиторы': ('composer', 'Композитор'),
-        'художники': ('designer', 'Художник'),
-        'монтажеры': ('editor', 'Монтажер'),
-        'актеры дубляжа': ('voice-actor', 'Актер дубляжа'),
+        'режиссеры': ('director', 'Режиссер', 1),
+        'сценаристы': ('writer', 'Сценарист', 2),
+        'продюсеры': ('producer', 'Продюсер', 3),
+        'актеры': ('actor', 'Актер', 4),
+        'операторы': ('operator', 'Оператор', 5),
+        'композиторы': ('composer', 'Композитор', 6),
+        'художники': ('designer', 'Художник', 7),
+        'монтажеры': ('editor', 'Монтажер', 8),
+        'актеры дубляжа': ('voice-actor', 'Актер дубляжа', 20),
     }
 
     def handle(self, *args, **options):
@@ -99,8 +99,13 @@ class Command(BaseCommand):
 
         for person_data in data['persons']:
             profession = person_data['profession']
-            slug, role_name = self.PROFESSION_MAP[profession]
-            role = Role.objects.get_or_create(slug=slug, defaults={'name': role_name})[0]
+            slug, role_name, priority_val = self.PROFESSION_MAP[profession]
+            role, _ = Role.objects.update_or_create(slug=slug,
+                defaults={
+                    'name': role_name,
+                    'priority': priority_val
+                }
+            )
             person = self.create_person(person_data)
             if person:
                 FilmCrew.objects.create(
